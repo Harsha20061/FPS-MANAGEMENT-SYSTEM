@@ -31,8 +31,7 @@ function Status() {
 
       const result = await axios.get("/api/stocks");
 
-console.log("API Response:", result.data);
-console.log("Is Array:", Array.isArray(result.data));
+
 
 setStocks(Array.isArray(result.data) ? result.data : []);
     } catch (error) {
