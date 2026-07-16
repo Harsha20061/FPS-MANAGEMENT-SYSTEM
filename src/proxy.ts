@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-export async function proxy(req: NextRequest) {
+export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   // Public routes
@@ -15,23 +15,21 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-  });
-
-  if (!token) {
+  if (!req.auth) {
     const loginUrl = new URL("/admin/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (pathname.startsWith("/admin") && token.role !== "admin") {
+  if (
+    pathname.startsWith("/admin") &&
+    req.auth.user?.role !== "admin"
+  ) {
     return NextResponse.redirect(new URL("/admin/login", req.url));
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: ["/admin/:path*"],
